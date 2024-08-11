@@ -2,9 +2,13 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const https = require('https');
 const connectDB = require('./configs/db.config');
 const userModel = require('./modules/users/user.model');
+
 const app = express();
+
 connectDB().then(
   async () => {
     const checkSuperAdmin = await userModel.findOne({
@@ -68,13 +72,18 @@ const url = process.env.URL;
 const env = process.env.ENV;
 const app_name = process.env.APP_NAME;
 
-// const server = http.createServer(app);
-
 app.set('PORT', port);
 
-app.listen(port, () => {
+// Read SSL certificate and key
+const sslOptions = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
+
+// Create HTTPS server
+https.createServer(sslOptions, app).listen(port, () => {
   console.log(`Server is starting at port ${port} || SUCCESS`);
-  console.log(`Hosting at ${url}:${port} || SUCCESS`);
+  console.log(`Hosting at https://${url}:${port} || SUCCESS`);
   console.log(`${app_name} is running on env ${env} || SUCCESS`);
   console.log(
     '--------------------------------------------------------------------------------------------------------------------------------------------------'
